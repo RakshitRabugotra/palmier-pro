@@ -64,6 +64,10 @@ final class ModelCatalog {
     }
 
     private func startSubscription() {
+        if let localURL = BackendConfig.localBackendURL {
+            startLocalFetch(baseURL: localURL)
+            return
+        }
         guard let client = AccountService.shared.convex else { return }
 
         subscription = client
@@ -84,6 +88,30 @@ final class ModelCatalog {
                     self?.apply(entries)
                 }
             )
+    }
+
+    /// The local backend may start after the app, so retry with backoff until the catalog loads.
+    private func startLocalFetch(baseURL: URL) {
+        retryTask?.cancel()
+        retryTask = Task { @MainActor [weak self] in
+            var attempt = 0
+            while !Task.isCancelled {
+                do {
+                    let entries = try await LocalBackend.fetchCatalog(baseURL: baseURL)
+                    guard !Task.isCancelled else { return }
+                    self?.apply(entries)
+                    Log.generation.notice("local catalog loaded models=\(entries.count)")
+                    return
+                } catch {
+                    attempt += 1
+                    self?.lastError = error.localizedDescription
+                    if attempt == 1 {
+                        Log.generation.warning("local catalog unavailable at \(baseURL.absoluteString): \(error.localizedDescription)")
+                    }
+                    try? await Task.sleep(for: .seconds(min(pow(2.0, Double(attempt - 1)), 30)))
+                }
+            }
+        }
     }
 
     private func handleFailure(_ err: ClientError) {

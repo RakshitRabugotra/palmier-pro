@@ -111,7 +111,7 @@ final class AccountService {
         guard !isMisconfigured, case .authenticated = authState else { return false }
         return true
     }
-    var aiAllowed: Bool { isSignedIn && !isMisconfigured }
+    var aiAllowed: Bool { BackendConfig.usesLocalBackend || (isSignedIn && !isMisconfigured) }
     var tier: AccountTier { account?.user.tier ?? .none }
     var isPaid: Bool { tier.isPaid }
 
@@ -124,6 +124,8 @@ final class AccountService {
 
     var remainingCredits: Int { max(0, (budgetCredits ?? 0) - spentCredits) }
     var hasCredits: Bool { remainingCredits > 0 }
+    /// Local-backend generation is free; cloud generation spends credits.
+    var hasGenerationCredits: Bool { BackendConfig.usesLocalBackend || hasCredits }
 
     @ObservationIgnored private(set) var convex: ConvexClientWithAuth<String>?
     @ObservationIgnored private var accountSubscription: AnyCancellable?

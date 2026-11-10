@@ -34,10 +34,10 @@ extension ToolExecutor {
 
     func generate(_ editor: EditorViewModel, _ args: [String: Any], type: ClipType) throws -> ToolResult {
         let prompt = args["prompt"] == nil ? "" : try args.requireString("prompt")
-        guard AccountService.shared.isSignedIn else {
+        guard AccountService.shared.aiAllowed else {
             throw ToolError("Generation requires signing in to Palmier. Tell the user to sign in.")
         }
-        guard AccountService.shared.hasCredits else {
+        guard AccountService.shared.hasGenerationCredits else {
             throw ToolError("Out of credits. Tell the user to add credits or subscribe to keep generating.")
         }
         switch type {
@@ -300,10 +300,10 @@ extension ToolExecutor {
     }
 
     func generateAudio(_ editor: EditorViewModel, _ args: [String: Any]) async throws -> ToolResult {
-        guard AccountService.shared.isSignedIn else {
+        guard AccountService.shared.aiAllowed else {
             throw ToolError("Generation requires signing in to Palmier. Tell the user to sign in.")
         }
-        guard AccountService.shared.hasCredits else {
+        guard AccountService.shared.hasGenerationCredits else {
             throw ToolError("Out of credits. Tell the user to add credits or subscribe to keep generating.")
         }
         let modelId = try args.string("model") ?? defaultModelId(
@@ -486,10 +486,10 @@ extension ToolExecutor {
         guard asset.type != .video || asset.sourceFPS != nil else {
             throw ToolError("Source FPS is not available yet. Poll get_media until the asset is ready.")
         }
-        guard AccountService.shared.isSignedIn else {
+        guard AccountService.shared.aiAllowed else {
             throw ToolError("Upscale requires signing in to Palmier. Tell the user to sign in.")
         }
-        guard AccountService.shared.hasCredits else {
+        guard AccountService.shared.hasGenerationCredits else {
             throw ToolError("Out of credits. Tell the user to add credits or subscribe to keep generating.")
         }
 

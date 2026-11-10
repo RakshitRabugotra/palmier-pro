@@ -129,6 +129,11 @@ echo "==> Injecting backend config into Info.plist"
 inject_plist PalmierClerkPublishableKey "${CLERK_PUBLISHABLE_KEY:-}"
 inject_plist PalmierConvexDeploymentURL "${CONVEX_DEPLOYMENT_URL:-}"
 inject_plist PalmierConvexHttpURL "${CONVEX_HTTP_URL:-}"
+if [ -n "${LOCAL_BACKEND_URL:-}" ]; then
+  echo "==> Using local backend at $LOCAL_BACKEND_URL"
+  /usr/libexec/PlistBuddy -c "Delete :PalmierLocalBackendURL" "$APP/Contents/Info.plist" 2>/dev/null || true
+  /usr/libexec/PlistBuddy -c "Add :PalmierLocalBackendURL string $LOCAL_BACKEND_URL" "$APP/Contents/Info.plist"
+fi
 cp "$RESOURCES/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 cp -R "$SPARKLE_FW" "$APP/Contents/Frameworks/Sparkle.framework"
 

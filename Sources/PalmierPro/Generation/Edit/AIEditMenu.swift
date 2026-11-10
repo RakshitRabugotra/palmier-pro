@@ -64,10 +64,7 @@ struct AIEditMenu: View {
         }
     }
 
-    private var aiAllowed: Bool {
-        let account = AccountService.shared
-        return account.isSignedIn && !account.isMisconfigured
-    }
+    private var aiAllowed: Bool { AccountService.shared.aiAllowed }
 
     private var availableActions: [EditAction] {
         EditAction.available(for: asset)
